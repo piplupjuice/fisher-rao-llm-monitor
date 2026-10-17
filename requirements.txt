@@ -1,0 +1,10 @@
+numpy>=1.26
+pandas>=2.0
+scipy>=1.11
+scikit-learn>=1.5
+matplotlib>=3.8
+torch>=2.1
+transformers>=4.45
+accelerate>=0.30
+nbformat>=5.9
+kaggle>=2.0  # optional: only needed to fetch/push Kaggle kernels

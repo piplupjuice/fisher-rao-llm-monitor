@@ -1,0 +1,7 @@
+model,coverage,acc_answered
+CONV,0.8,0.8125
+CONV,0.9,0.7722222222222223
+CONV+ALL_GEO(prereg),0.8,0.7875
+CONV+ALL_GEO(prereg),0.9,0.7583333333333333
+GEO only (prereg),0.8,0.759375
+GEO only (prereg),0.9,0.7444444444444445

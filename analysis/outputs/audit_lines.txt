@@ -1,0 +1,7 @@
+prediction/gold exact-match recompute mismatches: 0
+rows in predictions.csv: 3000
+duplicate (qid,method) rows: 0
+all method x split cells at exact expected counts (dev=100, test=400): True
+max |recomputed-summary| accuracy diff: 0.0
+trace rows dedup'd parts == merged rows: True
+paired_comparison.csv matches predictions pivot: True

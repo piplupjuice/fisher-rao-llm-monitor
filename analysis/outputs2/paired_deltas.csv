@@ -1,0 +1,10 @@
+model,d_auroc,lo,hi,p_two_sided
+CONV+mean_frcons (prereg G),-0.014451,-0.041384,0.010594,0.265
+CONV+mean_altdist (prereg G),-0.022915,-0.054166,0.006619,0.13
+CONV+mean_altdist_max (prereg G),0.000157,-0.002117,0.00262,0.892
+CONV+mean_altspread (prereg G),-0.031129,-0.069624,0.00768,0.112
+CONV+mean_hgap (prereg G),-0.000752,-0.008554,0.007009,0.846
+CONV+std_fr (prereg G),-0.029655,-0.059758,-0.000794,0.042
+CONV+ALL_GEO(prereg),-0.042226,-0.08483,-0.001438,0.043
+GEO only (prereg),-0.108809,-0.170251,-0.05217,0.0
+CONV+max_frcons (exploratory),0.004984,-0.002369,0.012102,0.164

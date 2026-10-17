@@ -1,0 +1,10 @@
+source,target,test_auroc
+fr_only,full_geodesic,0.7234
+fr_only,conservative,0.7427
+fr_only,greedy,0.7333
+entropy_only,full_geodesic,0.75
+entropy_only,conservative,0.6318
+entropy_only,greedy,0.5361
+conservative,full_geodesic,0.7708
+conservative,conservative,0.7543
+conservative,greedy,0.7426

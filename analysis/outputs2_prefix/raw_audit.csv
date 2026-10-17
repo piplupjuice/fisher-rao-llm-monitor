@@ -1,0 +1,32 @@
+check,result
+A1 split labels == frozen run-1 map (row-exact),True
+A1 n questions / unique qids,500 / 500
+A1 prevalence wrong (test),0.275
+A1 dev accuracy / test accuracy,"(np.float64(0.67), np.float64(0.725))"
+A1 stopped_on counts,"{'eos': 495, 'token_limit': 5}"
+A1 forward_calls == 1 + 5*steps - eos_stops (exact),True
+A2 exactly 4 candidates per step,True
+A2 candidate rows total,519356
+A2 greedy candidate token == chosen token (every step),True
+A2 NLL monotone non-decreasing in rank,"question_id  step
+0            0       True
+             1       True
+             2       True
+             3       True
+             4       True
+                     ... 
+499          412     True
+             413     True
+             414     True
+             415     True
+             416     True
+Name: nll, Length: 129839, dtype: bool"
+A2 NaN count in feature columns,0
+A2 fr_greedy range,"(np.float64(0.0), np.float64(3.1416))"
+A2 rank0 |fr_greedy| max (fp32 floor),0.002072
+A3 steps == generated_tokens (every question),True
+A3 total steps,129839
+A3 tie events / inconsistent tie rows,"(969, 0)"
+"A3 h_p in [0, log V] (V=151936)",True
+A3 p_gap01 >= 0,True
+A4 config row,"{'model': 'Qwen/Qwen2.5-1.5B-Instruct', 'seed': 42, 'top_k': 4, 'max_new_tokens': 512, 'n_gpus': 2, 'torch': '2.11.0+cu128', 'wall_seconds': 13134.880633592606}"

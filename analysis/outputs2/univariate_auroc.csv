@@ -1,0 +1,17 @@
+feature,test_auroc,dev_spearman_wrong
+max_H,0.711,0.3363
+gate_frac,0.6689,0.3728
+log_len,0.6687,0.2534
+mean_next_H,0.6676,0.4041
+mean_H,0.6612,0.4034
+late_H,0.643,0.2781
+mean_nll,0.643,0.3282
+mean_altdist,0.6366,0.4262
+mean_frcons,0.6206,0.3628
+mean_altdist_max,0.562,0.1028
+tie_frac,0.5412,0.106
+mean_hgap,0.533,-0.0733
+max_frcons,0.4731,-0.0092
+mean_altspread,0.3804,-0.4461
+mean_prob,0.3664,-0.3238
+std_fr,0.3335,-0.449

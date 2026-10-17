@@ -1,0 +1,9 @@
+check,result
+steps == generated_tokens for all q,True
+4 candidates for every step,False
+greedy candidate == chosen token,True
+zero NaN in geometric features,True
+fro_greedy of rank0 identically 0,False
+fr_consensus of rank0 positive somewhere,True
+tie events recorded,0
+ties with p_gap01 > 0 inconsistency,0

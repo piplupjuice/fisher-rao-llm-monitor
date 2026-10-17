@@ -1,0 +1,9 @@
+check,result
+steps == generated_tokens for all q,True
+4 candidates for every step,True
+greedy candidate == chosen token,True
+zero NaN in geometric features,True
+fr_greedy of rank0 ~ 0 (GPU fp32 tol < 3e-3),True
+fr_consensus of rank0 positive somewhere,True
+tie events recorded,969
+ties with p_gap01 > 0 inconsistency,0

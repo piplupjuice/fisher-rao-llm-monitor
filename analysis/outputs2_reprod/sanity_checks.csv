@@ -1,0 +1,8 @@
+check,result
+steps == generated_tokens,True
+4 candidates per step,True
+greedy candidate == chosen token,True
+NaN count in candidate features = 0,True
+rank0 |fr_greedy| < 3e-3 (GPU fp32 floor),True
+ties recorded,969
+tie rows with p_gap01>0 (inconsistencies),0

@@ -1,0 +1,6 @@
+method,B_regression_greedy_right,C_improvement_greedy_wrong,D_both_wrong
+conservative,15,16,127
+entropy_only,66,43,100
+fr_only,130,33,110
+full_geodesic,18,20,123
+nll_only,14,15,128

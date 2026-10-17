@@ -1,0 +1,26 @@
+# --- heavyweight raw artifacts (too big for git; see README "Data notes") ---
+geodesic_study.zip
+geodesic_study/token_traces.csv
+geodesic_study/token_traces_part0.csv
+geodesic_study/token_traces_part1.csv
+kaggle_out/
+geodesic_study2_smoke/
+geodesic_study2_smoke2/
+geodesic_study2_smoke3/
+geodesic_study2_smoke4/
+
+# --- local-only originals & scratch ---
+hellio_backup_run1.ipynb
+bangla_scan.txt
+nb_bangla_report.txt
+cell1_source.txt
+*.log
+
+# --- python ---
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# --- os ---
+Thumbs.db
+.DS_Store

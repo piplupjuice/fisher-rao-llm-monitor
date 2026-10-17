@@ -1,0 +1,7 @@
+method,0
+conservative,0.265
+entropy_only,0.3325
+fr_only,0.4675
+full_geodesic,0.2625
+greedy,0.275
+nll_only,0.265

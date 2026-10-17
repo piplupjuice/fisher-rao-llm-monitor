@@ -1,0 +1,7 @@
+method,acc,n,accuracy
+conservative,0.716,500,0.716
+entropy_only,0.668,500,0.668
+fr_only,0.52,500,0.52
+full_geodesic,0.718,500,0.718
+greedy,0.714,500,0.714
+nll_only,0.716,500,0.716
