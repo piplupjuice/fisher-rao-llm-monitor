@@ -1,13 +1,13 @@
 # Do geometry features help catch a language model's wrong answers?
 
-**One-sentence answer from this study: on our test, no.**
+**One-sentence answer from this study: on my test, no.**
 
-We tested a fancy idea from math ("Fisher–Rao geometry") as a way to tell when
+I tested a fancy idea from math ("Fisher–Rao geometry") as a way to tell when
 the model Qwen2.5-1.5B-Instruct gets a GSM8K math question wrong. The simple
 features (how surprised the model is, how long its answer is) worked.
 The geometry features added **zero** extra help.
 
-We also show why an earlier version of this study looked much better
+I also show why an earlier version of this study looked much better
 (AUROC ≈ 0.84) and why that number was a trap.
 
 Everything here is open. Every number comes from a file you can check.
@@ -26,7 +26,7 @@ Everything here is open. Every number comes from a file you can check.
 - **NLL** (negative log-likelihood) = another word for "how surprised the
   model is". Low = confident.
 - **Fisher–Rao (FR) distance** = a smart mathematical distance between two
-  probability distributions. Our question: does this smart distance see
+  probability distributions. My question: does this smart distance see
   things that plain entropy cannot see?
 - **Answer: no.** On this model and task: no.
 
@@ -34,7 +34,7 @@ Everything here is open. Every number comes from a file you can check.
 
 ## The results in one minute
 
-We took 500 GSM8K questions. 100 for training the monitor, 400 kept away for
+I took 500 GSM8K questions. 100 for training the monitor, 400 kept away for
 testing (untouched, frozen, never peeked at while building).
 
 | Monitor | AUROC on 400 test questions | What it means |
@@ -65,10 +65,10 @@ geometry monitor are close to each other or the simple one is better.
 
 ### The trap: what the old ≈0.84 number really was
 
-In our first run, one decoding arm accidentally made the model much weaker
+In my first run, one decoding arm accidentally made the model much weaker
 (52% accuracy instead of 72%). In that broken regime, simple features looked
 amazing (AUROC ≈ 0.84). But that was a feature of the broken regime, not a
-feature of the geometry method. We show the pieces of this mistake
+feature of the geometry method. I show the pieces of this mistake
 step-by-step in the paper. This chart shows how much worse the weak arm was:
 
 ![Accuracy of 6 decoding methods, run 1](geodesic_study/accuracy_overview.png)
@@ -76,9 +76,9 @@ step-by-step in the paper. This chart shows how much worse the weak arm was:
 *The red bar (`fr_only`, 52%) is the accidentally weak decoding arm.
 Everything else is ~72%.*
 
-### Honesty chart: our monitor scores are ranks, not probabilities
+### Honesty chart: my monitor scores are ranks, not probabilities
 
-The monitors output a risk score. We scale it to 0–1 for plots. It is a
+The monitors output a risk score. I scale it to 0–1 for plots. It is a
 *ranking*, not a calibrated probability. This is stated everywhere.
 
 ![Reliability curves](analysis/figures/fig_reliability.png)
@@ -87,25 +87,25 @@ The monitors output a risk score. We scale it to 0–1 for plots. It is a
 
 ## Why you can trust these numbers
 
-- Frozen test set. We never tuned anything on it.
-- We wrote the pass/fail rules **before** looking at the run-2 results.
+- Frozen test set. I never tuned anything on it.
+- I wrote the pass/fail rules **before** looking at the run-2 results.
 - Decoding is fully deterministic. Re-running gives byte-identical outputs
-  (we checked, via md5, across two separate GPU sessions).
-- We found **four bugs in our own analysis**. We fixed them, and we published
+  (I checked, via md5, across two separate GPU sessions).
+- I found **four bugs in my own analysis**. I fixed them, and I published
   the wrong version *and* the fixed version, so you can see the difference.
-- Independent checks with sklearn matched our own code exactly (0.0
+- Independent checks with sklearn matched my own code exactly (0.0
   difference) on every monitor.
 - Two previous headline claims from this project were themselves wrong — the
   README you are reading now is the corrected story.
 
 ## Where this sits in the literature
 
-We searched arXiv (cs.CL) on 2026-10-17. Nobody we found tests
+I searched arXiv (cs.CL) on 2026-10-17. Nobody I found tests
 "Fisher–Rao distance between candidate futures" as a monitor feature the way
 this study does. But Fisher–Rao geometry **is** used in other LLM roles —
 most importantly, a concurrent preprint (Belief-Trajectory Energy,
 arXiv:2610.05114) shows Fisher–Rao structure in layer-wise belief updates
-predicts errors. Our null result is about *token-level candidate divergence
+predicts errors. My null result is about *token-level candidate divergence
 features*, a different point in the pipeline. The paper's §3 and the
 References list every source with its verified DOI or arXiv ID.
 
@@ -157,7 +157,7 @@ To redo the *GPU generation* part, use the Kaggle notebooks in `kernels/`
 1. This README.
 2. `docs/run2_report.md` — full run-2 story.
 3. `paper/paper_draft.md` — the paper with all numbers and caveats.
-4. `paper/audit_checklist.md` — every check we ran, evidence per line.
+4. `paper/audit_checklist.md` — every check I ran, evidence per line.
 5. `experiment/replication_protocol.md` — the not-yet-run 3B plan.
 
 ## Known limits (please read)
@@ -165,9 +165,9 @@ To redo the *GPU generation* part, use the Kaggle notebooks in `kernels/`
 - One model (1.5B), one dataset (GSM8K), bf16. Results do not automatically
   extend to other models or tasks.
 - Lookahead is one token. Longer lookahead: untested.
-- With 400 test questions, our confidence intervals can rule out geometry
+- With 400 test questions, my confidence intervals can rule out geometry
   gains bigger than about +0.04 AUROC. Gains smaller than that: possible,
-  we cannot see them.
+  I cannot see them.
 - The monitors use one score per question. Step-level sequence models might
   behave differently. Untested.
 - The replication plan is written but **not run**.
