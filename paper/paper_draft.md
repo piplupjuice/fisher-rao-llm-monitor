@@ -2,10 +2,11 @@
 
 **A pre-registered falsification on Qwen2.5-1.5B-Instruct / GSM8K**
 
-Draft v1.0 — 2026-10-17. Author audit trail: `docs/experiment_protocol.md`,
+Draft v1.2 — 2026-10-17. Author audit trail: `docs/experiment_protocol.md`,
 `docs/run2_report.md`, `docs/audit_phase1.md`, `analysis/run2_analysis_prefix.py`
 (pre-fix), `analysis/run2_analysis.py` (corrected). **Status: draft, not
-submitted. All citations must be DOI-verified before submission (marked §ref).**
+submitted.** v1.2 change: all references machine-verified (arXiv API, Crossref,
+doi.org; see References) and a Related-Work search performed the same day (§3).
 
 ---
 
@@ -151,39 +152,66 @@ converge on the same conclusion from opposite directions.
 
 ## 3. Related work
 
-*All citations below are real, commonly cited works, but the author must
-re-verify each DOI before submission; this draft does not claim an exhaustive
-survey.*
+*All references cited in this section were machine-verified on 2026-10-17
+(arXiv API, Crossref, doi.org; details in §References). The search status is
+stated in the novelty paragraph below; this is not claimed to be an
+exhaustive survey.*
 
 **Uncertainty estimation in deep learning.** Post-hoc confidence from softmax
-probability is the canonical baseline [Hendrycks & Gimpel, ICLR 2017 §ref];
-calibration of neural networks is standardised in [Guo et al., NeurIPS 2017
-§ref]. For autoregressive LLMs, token-level entropy and sample-based
-uncertainty are mainstream [Kuhn et al., ICLR 2023 §ref]; semantic entropy for
-hallucination detection is [Farquhar et al., Nature 2024 §ref]; LLMs' internal
-probes for "knowing what they know" are [Kadavath et al., 2022 §ref];
-verbalized uncertainty is studied in [Lin et al., 2022 §ref].
+probability is the canonical baseline [Hendrycks & Gimpel, ICLR 2017, arXiv:1610.02136];
+calibration of neural networks is standardised in [Guo et al., ICML 2017,
+arXiv:1706.04599]. For autoregressive LLMs, token-level entropy and
+sample-based uncertainty are mainstream [Kuhn, Gal & Farquhar, ICLR 2023,
+arXiv:2302.09664]; semantic entropy for hallucination detection is
+[Farquhar et al., Nature 630:625–630, 2024, doi:10.1038/s41586-024-07421-0];
+LLMs' internal probes for "knowing what they know" are [Kadavath et al., 2022,
+arXiv:2207.05221]; verbalized uncertainty is studied in [Lin, Hilton & Evans,
+TMLR 2022, arXiv:2205.14334].
 
 **Correctness prediction for reasoning.** Uncertainty-aware selective
-question answering is formalised in [Kamath et al., ACL 2020 §ref];
-SelfCheckGPT for black-box consistency is [Manakul et al., EMNLP 2023 §ref].
-Correctness of generated reasoning traces relates closely to GSM8K-style
-verifiers [Cobbe et al., 2021 §ref].
+question answering is formalised in [Kamath, Jia & Liang, ACL 2020,
+arXiv:2006.09462]; SelfCheckGPT for black-box consistency is [Manakul et al.,
+EMNLP 2023, arXiv:2303.08896]. Correctness of generated reasoning traces
+relates closely to GSM8K-style verifiers [Cobbe et al., 2021, arXiv:2110.14168].
+Early-token signals are an active adjacent direction: probing of first-token
+logits for answerability and safety [Zhao et al., ECCV 2024, arXiv:2403.09037]
+and single-decode first-token confidence matching sample-agreement on factual
+QA [Gabriel, 2026, arXiv:2605.05166].
 
 **Geometric representations of distributions.** Fisher–Rao/Bhattacharyya
-geometry of parametric families is classical [Rao 1945 §ref; Bhattacharyya
-1943 §ref]; information geometry in general is [Amari 2016 §ref; Nielsen 2021
-§ref]. Some recent preprint and workshop work applies geometric quantities to
-LLM token/sequence distributions, and we cannot exclude that peer-reviewed
-work testing candidate-future divergences exists. **Novelty statement and its
-limit:** the writing environment used here had no web access, so *no literature
-search was performed*; we therefore make **no first-ness claim**. We claim
-only the falsification result itself (§6) and the audit case study (§2).
-Before submission, a proper search is required with at least these query
-families: ("Fisher–Rao" AND ("language model" OR LLM) AND (uncertainty OR
-correctness OR hallucination)); divergences AND "future distribution" AND
-"reasoning traces"; information geometry AND LLM monitoring; "candidate
-futures" decoding monitoring.
+geometry of parametric families is classical [Rao 1945; Bhattacharyya 1943];
+information geometry in general is [Amari 2016, doi:10.1007/978-4-431-55978-8;
+Nielsen 2020, doi:10.3390/e22101100]. A fast-growing 2026 preprint literature
+applies Fisher–Rao geometry to LLMs in *other* roles: training regularisation
+in self-distillation [Jukić & Titov, arXiv:2607.06855], model merging on the
+Fisher–Rao manifold [Wang, Ye & Yin, arXiv:2603.04972], a shared
+information-geometric structure of next-token distributions
+[Picozzi, arXiv:2609.11063], language statistics via Fisher–Rao distances
+[Du & Tanaka-Ishii, Phys. Rev. Research 6, L022028, 2024], and document
+distance via Wasserstein–Fisher–Rao [Wang et al., 2019, arXiv:1904.10294].
+
+**Closest concurrent work.** Belief-Trajectory Energy [Ying et al.,
+arXiv:2610.05114, Oct 2026] shows that layer-wise predictive *revisions*,
+interpreted through Fisher–Rao geometry, carry AUROC-style error signal across
+reasoning tasks. This differs from our setting in three ways: it probes
+layer-level belief revision, ours measures divergences between candidate
+*future continuations* at the token level; it is not set in a
+pre-registered falsification protocol with a conventional-feature control
+arm; and it targets layer trajectories rather than candidate-token fan-out.
+We cite it as concurrent evidence that Fisher–Rao geometry is informative
+*somewhere* in LLM pipelines — which makes our token-level null result more
+informative, not contradicted.
+
+**Novelty statement and its limit.** A targeted arXiv (cs.CL/cs.LG-focused)
+search was performed on 2026-10-17 with the query families listed in
+`paper/audit_checklist.md` (§6). We found no work that uses divergence
+distances between candidate future continuations as features of a supervised
+correctness monitor under frozen greedy decoding, evaluated with a
+pre-registered falsification protocol. We nevertheless make **no general
+first-ness claim**: coverage outside arXiv cs.CL/cs.LG, different vocabulary,
+and non-indexed venues cannot be excluded, and the search was targeted, not
+exhaustive. We claim only the falsification result itself (§6) and the audit
+case study (§2).
 
 **Negative results & evaluation hygiene.** Leakage and reproducibility
 pathologies are documented in [Kapoor & Narayanan, Patterns 2023 §ref];
@@ -611,47 +639,80 @@ order of value/effort):
 
 ---
 
-## References — **author must verify every venue/DOI before submission**
+## References — machine-verified 2026-10-17
 
-**This draft was written in an environment with no web access; none of the
-DOIs below have been machine-verified.** All entries are to work the author
-believes exists with those titles, authors, and venues; treat the list as
-*unverified-until-checked* and remove (do not adjust) any entry that fails
-verification. Suggested venues are marked where the author is unsure (the
-uncertainty is flagged inline).
+**Verification method:** every entry below was checked on 2026-10-17 via the
+arXiv export API (title/ID match + author list + venue comment), Crossref
+metadata search, and/or resolving the printed DOI directly. Two earlier
+inconsistencies were caught and corrected in v1.2: Nielsen 2020 is Entropy
+22(10), article 1100 (not 1105), and Kapoor & Narayanan 2023 is Patterns
+4(9) (not 4(7)). The two Calcutta Mathematical Society classics predate
+digital identifiers and were verified through their standard citations in
+[Nielsen 2020]; print-level page numbers were not independently re-checked.
 
-- H. Hendrycks, K. Gimpel. "A Baseline for Detecting Misclassified and
-  Out-of-Distribution Examples in Neural Networks." ICLR 2017.
+- D. Hendrycks, K. Gimpel. "A Baseline for Detecting Misclassified and
+  Out-of-Distribution Examples in Neural Networks." **ICLR 2017.**
+  arXiv:1610.02136.
 - C. Guo, G. Pleiss, Y. Sun, K. Q. Weinberger. "On Calibration of Modern
-  Neural Networks." ICML 2017.
-- S. Kuhn, Y. Gal, S. Farquhar. "Semantic Uncertainty: Linguistic Invariances
-  for Uncertainty Estimation in Natural Language Generation." ICLR 2023.
-- S. Farquhar, D. Kossen, L. Kuhn, Y. Gal. "Detecting hallucinations in large
-  language models using semantic entropy." Nature 630, 2024.
+  Neural Networks." **ICML 2017.** arXiv:1706.04599.
+- L. Kuhn, Y. Gal, S. Farquhar. "Semantic Uncertainty: Linguistic Invariances
+  for Uncertainty Estimation in Natural Language Generation." **ICLR 2023
+  (Spotlight).** arXiv:2302.09664.
+- S. Farquhar, J. Kossen, L. Kuhn, Y. Gal. "Detecting hallucinations in large
+  language models using semantic entropy." **Nature 630(8017):625–630, 2024.**
+  doi:10.1038/s41586-024-07421-0.
 - S. Kadavath et al. "Language Models (Mostly) Know What They Know."
-  arXiv:2207.05221, 2022.
-- S. Lin et al. "Teaching Models to Express Their Uncertainty in Words."
-  TMLR 2022.
-- A. Kamath, J. Jia, P. Liang. "Selective Question Answering under Domain
-  Shift." ACL 2020.
+  **arXiv:2207.05221, 2022.**
+- S. Lin, J. Hilton, O. Evans. "Teaching Models to Express Their Uncertainty
+  in Words." **TMLR 2022.** arXiv:2205.14334.
+- A. Kamath, R. Jia, P. Liang. "Selective Question Answering under Domain
+  Shift." **ACL 2020.** arXiv:2006.09462.
 - P. Manakul, A. Liusie, M. J. F. Gales. "SelfCheckGPT: Zero-Resource
   Black-Box Hallucination Detection for Generative Large Language Models."
-  EMNLP 2023.
+  **EMNLP 2023 (main).** arXiv:2303.08896.
 - K. Cobbe et al. "Training Verifiers to Solve Math Word Problems."
-  arXiv:2110.14168, 2021.
+  **arXiv:2110.14168, 2021.**
+- Qwen Team. "Qwen2.5 Technical Report." **arXiv:2412.15115, 2024.**
+  *(added v1.2 — the studied model family.)*
 - C. R. Rao. "Information and the accuracy attainable in the estimation of
-  statistical parameters." Bull. Calcutta Math. Soc. 37, 1945.
+  statistical parameters." **Bull. Calcutta Math. Soc. 37:81–91, 1945.**
 - A. Bhattacharyya. "On a measure of divergence between two statistical
-  populations defined by their probability distributions." Bull. Calcutta
-  Math. Soc. 35, 1943.
-- S. Amari. "Information Geometry and Its Applications." Springer, 2016.
+  populations defined by their probability distributions." **Bull. Calcutta
+  Math. Soc. 35:99–109, 1943.**
+- S.-i. Amari. "Information Geometry and Its Applications." **Springer
+  (Applied Mathematical Sciences 194), 2016.** doi:10.1007/978-4-431-55978-8.
 - F. Nielsen. "An Elementary Introduction to Information Geometry."
-  Entropy 22(10), 2020.
-- A. Kapoor, A. Narayanan. "Leakage and the reproducibility crisis in
-  ML-based science." Patterns 4(7), 2023.
-- K. Gorman, S. Bedrick. "We Need to Talk about Standard Splits." ACL 2019.
+  **Entropy 22(10):1100, 2020.** doi:10.3390/e22101100.
+- S. Kapoor, A. Narayanan. "Leakage and the reproducibility crisis in
+  machine-learning-based science." **Patterns 4(9):100804, 2023.**
+  doi:10.1016/j.patter.2023.100804.
+- K. Gorman, S. Bedrick. "We Need to Talk about Standard Splits."
+  **ACL 2019.** doi:10.18653/v1/P19-1267.
 - Y. Geifman, R. El-Yaniv. "Selective Classification for Deep Neural
-  Networks." NeurIPS 2017.
+  Networks." **NeurIPS 2017.** arXiv:1705.08500.
+
+**Concurrent/related preprints (verified to exist with those titles/authors
+on 2026-10-17; not necessarily peer-reviewed — treat as adjacent work):**
+
+- J. Ying et al. "Belief-Trajectory Energy: Measuring the Path to a
+  Prediction." arXiv:2610.05114.
+- J. Jukić, I. Titov. "Geometric Self-Distillation for Reasoning
+  Generalization." arXiv:2607.06855.
+- D. Picozzi. "The information geometry of large language models is shared,
+  learned, and controllable." arXiv:2609.11063.
+- J. Wang, Z. Ye, W. Yin. "Functionality-Oriented LLM Merging on the
+  Fisher–Rao Manifold." arXiv:2603.04972.
+- X. Du, K. Tanaka-Ishii. "Correlation Dimension of Natural Language in a
+  Statistical Manifold." Phys. Rev. Research 6, L022028, 2024.
+  doi:10.1103/PhysRevResearch.6.L022028. arXiv:2405.06321.
+- Q. Zhao et al. "The First to Know: How Token Distributions Reveal Hidden
+  Knowledge in Large Vision-Language Models?" ECCV 2024. arXiv:2403.09037.
+- M. Gabriel. "The First Token Knows: Single-Decode Confidence for
+  Hallucination Detection." arXiv:2605.05166.
+
+*Note on related-work novelty: no claim of general novelty of Fisher–Rao
+methodology is made; the paper's evidence-backed claim is the specific
+falsification result and the audit framework (see §3 novelty paragraph).*
 
 *Note on related-work novelty: no claim of general novelty of Fisher–Rao
 methodology is made; the paper's evidence-backed claim is the specific

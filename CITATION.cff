@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: >-
+  If you use this study or its audit methodology, please cite it (software
+  metadata below). Citation author is the GitHub account; no institutional
+  affiliation exists at this time.
+title: >-
+  Does Fisher-Rao geometry between candidate futures add information to
+  token-level uncertainty monitors? A pre-registered falsification on
+  Qwen2.5-1.5B-Instruct / GSM8K
+authors:
+  - alias: piplupjuice
+type: dataset
+version: v1.2
+date-released: 2026-10-17
+url: https://github.com/piplupjuice/fisher-rao-llm-monitor
+repository-code: https://github.com/piplupjuice/fisher-rao-llm-monitor
+license: MIT
+keywords:
+  - information geometry
+  - Fisher-Rao
+  - uncertainty estimation
+  - LLM monitoring
+  - negative result
+  - pre-registration
+  - falsification
+  - GSM8K
+  - reproducibility
+abstract: >-
+  A controlled, pre-registered test of whether Fisher-Rao distances between
+  candidate future continuations add incremental predictive information to
+  conventional token-level uncertainty features (entropy, NLL, length) for
+  monitor-classified answer correctness. Target model: Qwen2.5-1.5B-Instruct,
+  dataset: GSM8K, 500 questions, frozen split, deterministic decoding.
+  Result: null for incremental Fisher-Rao information under the tested
+  regime; an earlier confounded 0.84 AUROC estimate is decomposed and
+  corrected in-artifact. Full audit trail included.

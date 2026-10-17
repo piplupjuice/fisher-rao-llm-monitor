@@ -1,5 +1,7 @@
 # Fisher-Rao Monitors for LLM Correctness — A Controlled Study
 
+**One-sentence summary for a busy reader:** In a pre-registered, artifact-audited test on 500 GSM8K questions with Qwen2.5-1.5B-Instruct, Fisher–Rao distances between candidate future continuations added **no** incremental predictive information beyond simple entropy/NLL/length features for classifying wrong answers (8/8 augmentation arms ≤ 0 ΔAUROC), and an earlier headline number (≈0.84 AUROC) is shown to be a numerator–regime confound.
+
 This project tests one clear question: **do Fisher-Rao geometry features help
 predict when a language model gives a wrong answer, beyond simple features
 like entropy and NLL?**
@@ -59,6 +61,19 @@ even hurt the monitor.
 near 0.84. That number was misleading. The reason: bad sampling made the
 model fail more often, and that regime made simple features look very
 strong. The paper and `docs/run2_report.md` explain this step by step.
+
+---
+
+## Where this sits in the literature
+
+We searched arXiv (cs.CL) on 2026-10-17. Nobody we found tests
+"Fisher-Rao distance between candidate futures" as a monitor feature the way
+this study does. But Fisher-Rao geometry IS being used in other LLM roles —
+most importantly, a concurrent preprint (Belief-Trajectory Energy,
+arXiv:2610.05114) shows Fisher-Rao structure in layer-wise belief updates
+predicts errors. Our null result is about *token-level candidate divergence
+features*, which is a different point in the pipeline. The paper's Related
+Work section (§3) and References list all verified sources with DOIs.
 
 ---
 

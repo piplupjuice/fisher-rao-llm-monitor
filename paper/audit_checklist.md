@@ -72,14 +72,35 @@ All five (D4 counted) → **disclosure audit PASS**.
 | Run-1 gate rates 9.0% / 0.65% | `geodesic_study/summary.csv` | PASS |
 | Reproduction agreement (run-2 greedy ≡ run-1 greedy arm 500/500, acc 0.714) | A1 + `predictions.csv` | PASS |
 
-## 6. OPEN items (cannot be verified in this environment)
+## 6. OPEN items
 
-1. **Literature / novelty:** no web access → no search performed. Paper makes no
-   first-ness claim and supplies suggested query strings; verification is an
-   unresolved submission prerequisite.
-2. **Citations/DOIs:** all references are believed-real but unverified here;
-   paper reference header instructs verify-or-remove. Unresolved until manual
-   check.
+**Resolved 2026-10-17 (paper v1.2):**
+
+1. **Literature / novelty — RESOLVED (partial by design).** A targeted arXiv
+   search was performed on 2026-10-17 via the arXiv export API, restricted to
+   cs.CL (with cs.LG overlap), using these query families:
+   - `abs:"Fisher-Rao" AND cat:cs.CL` (10 hits reviewed in full)
+   - `abs:"first-token" AND abs:"uncertainty" AND cat:cs.CL` (7 hits reviewed in full)
+   Result: no paper found applying candidate-future divergence features to a
+   supervised correctness monitor under frozen greedy decoding with a
+   pre-registered falsification protocol. Closest works recorded in the paper
+   (§References "Concurrent/related preprints"), most notably
+   [Ying et al., arXiv:2610.05114] (Fisher–Rao geometry over layer-wise
+   predictive revisions + detection AUROC). *Remaining limit, stated in the
+   paper:* targeted, not exhaustive; non-arXiv venues and different
+   vocabulary not covered; no general first-ness claim is made.
+2. **Citations/DOIs — RESOLVED.** All 16 original references plus the Qwen2.5
+   Technical Report were machine-verified on 2026-10-17 (arXiv export API,
+   Crossref, doi.org). Two metadata errors found and fixed: Nielsen 2020 =
+   Entropy 22(10):1100 (not 1105); Kapoor & Narayanan 2023 = Patterns 4(9):
+   100804 (not 4(7)). Hendrycks & Gimpel arXiv ID confirmed as 1610.02136;
+   Gorman & Bedrick as ACL 2019 P19-1267; Kamath et al. corrected to
+   Kamath, Jia & Liang (arXiv:2006.09462). The two 1940s Calcutta Math. Soc.
+   classics have no digital identifiers; they are cited via their standard
+   form with a note. No reference required removal.
+
+**Still open:**
+
 3. **Figures byte-reproducibility** intentionally not asserted (matplotlib
    rendering nondeterminism); numbers behind them are assert-reproducible.
 4. **Brier calibration choice** (sigmoid of decision function) is a defensible
@@ -94,5 +115,7 @@ All five (D4 counted) → **disclosure audit PASS**.
 - `analysis/outputs2/` — corrected; `analysis/outputs2_prefix/` — audited pre-fix; `analysis/outputs2_reprod/` — independent rerun.
 - `docs/run2_report.md` — original body preserved verbatim; addendum appended (append-only).
 - `paper/paper_draft.md` — v1.0 → v1.1 (novelty hedging, redundancy values, reproduction statement, reference header).
+- `paper/paper_draft.md` — v1.2 (2026-10-17): references machine-verified (2 metadata fixes), Related-Work search performed and documented, concurrent 2026 FR-geometry preprints added as adjacent work.
+- `paper/audit_checklist.md` — OPEN items 1–2 resolved with documented evidence (see §6).
 - Raw data: never modified (A1–A4 read-only scripts).
 - No git commit was made by the agent (repo state left to the author).
