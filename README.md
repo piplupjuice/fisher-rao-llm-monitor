@@ -16,16 +16,68 @@ Everything here is open. Every number comes from a file you can check.
 
 ## The full story — how this project got here
 
-**Chapter 1 — The first experiment (run 1).** I built an experiment to answer
-one question: can a model answer math questions *better* if it peeks one
-token ahead, using Fisher–Rao geometry between "possible futures"?
-I decoded 500 GSM8K questions in 6 different ways, saved every token, and
-built small monitor models to predict wrong answers.
+**Chapter 1 — The first experiment (run 1).** See the full walkthrough below —
+experiment 1 deserves its own section, because everything later grew out of it.
 
 **Chapter 2 — The "what?!" moment.** One monitor score came out very high,
 around **0.84 AUROC**. For these tasks that felt almost too good. It was.
 I was suspicious of my own best result, and that suspicion is the only reason
 this project is worth reading.
+
+### Experiment 1 in full — what it was, why I did it, and how it worked
+
+**Why I ran it.** Bigger models catch their own mistakes better. I wanted to
+test a specific idea for *small* models, where every token counts: instead of
+always taking the top token, pause at some steps, look at the top-4 candidate
+tokens, peek **one token ahead** at what the model *would* do under each
+candidate, and compare the candidate "futures" with **Fisher–Rao geometry**
+(a mathematical distance between probability distributions). The hope: pick
+the next token using geometric foresight instead of just the highest
+probability — like checking around a corner before walking.
+
+**The setup in 6 steps (all deterministic):**
+
+1. Dataset: 500 GSM8K math questions, split 100 dev / 400 test, frozen.
+   Model: Qwen2.5-1.5B-Instruct, bf16.
+2. Decode every question 6 different ways (the table below).
+3. At every generation step, save **all 4 top candidate tokens** and 13
+   scores per candidate: token NLL, token probability, next-step entropy,
+   FR distance from each candidate's future distribution to the greedy
+   future, FR distance to the candidate "consensus", plus combination scores.
+4. Also save full token-level traces (744,951 rows in the end) so any run can
+   be re-measured without re-decoding.
+5. From each question's trace, build simple per-question features
+   (mean entropy, mean NLL, max entropy, mean FR distances, answer length…).
+6. Train small monitor models (logistic regression) on the 100 dev
+   questions, test on the 400 untouched ones: *can these features tell wrong
+   answers from right ones?*
+
+**The 6 decoding methods — what each one actually does:**
+
+| Method | Plain description | Test accuracy | Time per question |
+|---|---|---|---|
+| `greedy` | Normal baseline: always take the highest-probability token. | 71.4% | 9.1 s |
+| `nll_only` | Lookahead gate always on; when the next-token pick is close, choose candidate by best (lowest surprise) future. | 71.6% | 9.1 s |
+| `entropy_only` | Same idea but scored by future entropy (pick most certain future). | 66.8% | 10.7 s |
+| `full_geodesic` | Pick candidate using Fisher–Rao geometric distance between futures, on a moderate gate. | **71.8%** | 12.1 s |
+| `conservative` | FR gating applied only in very rare, safest cases (fires on 0.65% of steps). | 71.6% | 9.3 s |
+| `fr_only` | Aggressive FR-only reranking (gate fires on 22.6% of steps). | **52.0%** | 16.6 s |
+
+*(Exact values from `geodesic_study/summary.csv` — real, reproducible.)*
+
+**What the accuracies already hinted.** The geometric foresight did **not**
+beat greedy — best arm +0.4 percentage points (71.8 vs 71.4), not
+statistically significant. And the aggressive FR arm (`fr_only`) actually
+**broke the model**: 52% accuracy, 19+ points *worse* than greedy, and 3x
+slower. Remember that awful 52% red bar — it becomes the villain of the
+story below.
+
+**The monitors, and the "what?!" headline.** Each of the 6 methods produced
+its own generation set, so I could train a monitor on any method's outputs.
+Scores per method (COMBINED feature-set monitor): `fr_only` **0.842**,
+`entropy_only` 0.731, all others 0.712–0.715. The 0.84 looked like a
+breakthrough — *"geometry features gave a huge jump!"* That excitement is
+exactly the trap the next chapter opens.
 
 **Chapter 3 — I audited myself like an enemy.** I wrote independent check
 scripts (`analysis/audit_raw_A1A4.py`) that only re-measured things. I found
