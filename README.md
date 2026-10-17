@@ -16,94 +16,140 @@ Everything here is open. Every number comes from a file you can check.
 
 ## The full story — how this project got here
 
-**Chapter 1 — The first experiment (run 1).** I built a controlled decoding
-study on 500 GSM8K questions: six decoding arms, one-token lookahead, and
-Fisher–Rao geometry between candidate futures. The full design follows
-below — every number later in this story traces back to this run.
+This is the whole project, told in order, the way it actually happened.
+Five acts. Every number is real and comes from a file in this repo.
 
-**Chapter 2 — The "what?!" moment.** One monitor score came out very high,
-around **0.84 AUROC**. For these tasks that felt almost too good. It was.
-That suspicion set the direction for everything that followed.
+### Act I — Experiment 1: everything I did, everything I got
 
-### Experiment 1 in full — what it was, why I did it, and how it worked
+**The idea I wanted to test.** Bigger language models catch their own
+mistakes better. Small models can't afford much self-checking, so I wanted a
+cheap trick: instead of always taking the top token, pause at some steps,
+look at the **top-4 candidate tokens**, peek **one token ahead** at what the
+model *would* do under each candidate, and compare those candidate "futures"
+using **Fisher–Rao geometry** — a mathematical distance between probability
+distributions. Think of it as checking around a corner before committing to
+a direction. The question: does this foresight produce *better answers*, and
+do the geometric quantities also help a monitor *detect wrong answers*?
 
-**Why I ran it.** Bigger models catch their own mistakes better. I wanted to
-test a specific idea for *small* models, where every token counts: instead of
-always taking the top token, pause at some steps, look at the top-4 candidate
-tokens, peek **one token ahead** at what the model *would* do under each
-candidate, and compare the candidate "futures" with **Fisher–Rao geometry**
-(a mathematical distance between probability distributions). The hope: pick
-the next token using geometric foresight instead of just the highest
-probability — like checking around a corner before walking.
+**What I did — the pipeline, step by step (fully deterministic):**
 
-**The setup in 6 steps (all deterministic):**
-
-1. Dataset: 500 GSM8K math questions, split 100 dev / 400 test, frozen.
+1. **Data.** 500 GSM8K math questions, frozen split: 100 dev / 400 test.
    Model: Qwen2.5-1.5B-Instruct, bf16.
-2. Decode every question 6 different ways (the table below).
-3. At every generation step, save **all 4 top candidate tokens** and 13
-   scores per candidate: token NLL, token probability, next-step entropy,
-   FR distance from each candidate's future distribution to the greedy
-   future, FR distance to the candidate "consensus", plus combination scores.
-4. Also save full token-level traces (744,951 rows in the end) so any run can
-   be re-measured without re-decoding.
-5. From each question's trace, build simple per-question features
-   (mean entropy, mean NLL, max entropy, mean FR distances, answer length…).
-6. Train small monitor models (logistic regression) on the 100 dev
-   questions, test on the 400 untouched ones: *can these features tell wrong
-   answers from right ones?*
+2. **Decoding.** I decoded all 500 questions **six different ways** — one
+   plain baseline and five lookahead-style methods (table below).
+3. **Recording.** At every generation step I saved **all 4 top candidates**
+   with **13 scores per candidate**: token NLL, token probability, next-step
+   entropy, plus the Fisher–Rao distances (candidate future → greedy future,
+   candidate future → the candidates' consensus) and combination scores.
+4. **Traces.** Full token-level traces for every question — **744,951 rows**
+   — so every measurement can be re-done forever without touching a GPU.
+5. **Features.** Per question, I collapsed the trace into simple features:
+   mean entropy, max entropy, mean NLL, the four FR features, answer length.
+6. **Monitors.** I trained a small logistic-regression monitor on the 100 dev
+   questions, tested on the 400 untouched test questions: *which features
+   tell wrong answers from right ones?*
 
-**The 6 decoding methods — what each one actually does:**
+**The six decoding arms — what each one does and what it produced:**
 
-| Method | Plain description | Test accuracy | Time per question |
-|---|---|---|---|
-| `greedy` | Normal baseline: always take the highest-probability token. | 71.4% | 9.1 s |
-| `nll_only` | Lookahead gate always on; when the next-token pick is close, choose candidate by best (lowest surprise) future. | 71.6% | 9.1 s |
-| `entropy_only` | Same idea but scored by future entropy (pick most certain future). | 66.8% | 10.7 s |
-| `full_geodesic` | Pick candidate using Fisher–Rao geometric distance between futures, on a moderate gate. | **71.8%** | 12.1 s |
-| `conservative` | FR gating applied only in very rare, safest cases (fires on 0.65% of steps). | 71.6% | 9.3 s |
-| `fr_only` | Aggressive FR-only reranking (gate fires on 22.6% of steps). | **52.0%** | 16.6 s |
+| Arm | What it does | Test accuracy | Time/question | Forward passes/question |
+|---|---|---|---|---|
+| `greedy` | Baseline: always take the top token. | 71.4% | 9.1 s | 260 |
+| `nll_only` | Lookahead always on; pick candidate by least-surprising future. | 71.6% | 9.1 s | 257 |
+| `entropy_only` | Same gate, scored by future entropy (most certain future). | 66.8% | 10.7 s | 311 |
+| `full_geodesic` | Pick by Fisher–Rao distance between futures, moderate gate (9% of steps). | **71.8%** | 12.1 s | 349 |
+| `conservative` | FR gating only in the rarest, safest cases (0.65% of steps). | 71.6% | 9.3 s | 265 |
+| `fr_only` | Aggressive FR reranking (fires on 22.6% of steps). | **52.0%** | 16.6 s | 488 |
 
-*(Exact values from `geodesic_study/summary.csv` — real, reproducible.)*
+*(All values from `geodesic_study/summary.csv` — reproducible.)*
 
-**What the accuracies already hinted.** The geometric foresight did **not**
-beat greedy — best arm +0.4 percentage points (71.8 vs 71.4), not
-statistically significant. And the aggressive FR arm (`fr_only`) actually
-**broke the model**: 52% accuracy, 19+ points *worse* than greedy, and 3x
-slower. Keep that 52% bar in mind — the next chapter explains why it matters.
+**Everything the run produced (this is what "I did the experiment" means in
+files):**
 
-**The monitors, and the "what?!" headline.** Each of the 6 methods produced
-its own generation set, so I could train a monitor on any method's outputs.
-Scores per method (COMBINED feature-set monitor): `fr_only` **0.842**,
-`entropy_only` 0.731, all others 0.712–0.715. The 0.84 looked like a
-breakthrough — *"geometry features gave a huge jump!"* That excitement is
-exactly the trap the next chapter opens.
+| Artifact | Size / rows | What is inside |
+|---|---|---|
+| `geodesic_study/predictions.csv` | 3,000 rows | Final answer per question × 6 arms + pairwise comparison fields |
+| `geodesic_study/summary.csv` | 6 rows | Accuracy, timing, forward calls, gate rates per arm |
+| `geodesic_study/token_traces*.csv` | 744,951 rows (~160 MB, off GitHub) | Every token step, every candidate, all 13 scores |
+| `analysis/outputs/` | 11 tables | Run-1 audit tables, monitor scores, all AUROC/CIs |
+| `geodesic_study/accuracy_overview.png` | figure | The 6-arm accuracy chart used in this README |
 
-**Chapter 3 — I audited myself like an enemy.** I wrote independent check
-scripts (`analysis/audit_raw_A1A4.py`) that only re-measured things. I found
-that one decoding arm had quietly **broken the model** (52% accuracy instead
-of ~72%). With so many extra wrong answers, the monitor learned an easy rule
-— "if the model is confused, it's wrong" — and the 0.84 measured the broken
-regime, not the geometry method. I also found real bugs in my own analysis
-code along the way (six in total, all documented).
+**What came out of the arms — the raw findings:**
 
-**Chapter 4 — Freeze the rules first.** I wrote a pre-registration
-(`docs/experiment_protocol.md`): fixed split, fixed decoding, fixed monitors,
-and pass/fail criteria written **before** looking at any new result.
+1. **Foresight did not pay.** Best arm (`full_geodesic`) = 71.8% vs greedy
+   71.4%: +0.4 points, not statistically significant (McNemar p = 0.49).
+2. **Entropy-scored reranking actively hurt:** −5.7 points (p = 0.02).
+3. **The aggressive FR arm broke the model:** 52.0% accuracy (−19.4 points,
+   p < 0.0001), 1.9× the compute, and it stopped early on 36/500 questions
+   (vs ~5 for the healthy arms) — the reranking was derailing generations.
+4. **Cost curve:** more foresight = more forward passes (488 vs 260 per
+   question), with zero accuracy to show for it.
 
-**Chapter 5 — The clean run (run 2).** I re-ran everything on free Kaggle
-GPUs (2x T4): 519,356 candidate rows, all 500 questions, zero failures.
-Decoding was fully deterministic — the outputs were byte-identical across two
-separate GPU sessions (checked with md5).
+**The monitors, and the moment everything changed.** Because each arm had
+its own 500 generations, I could train a monitor on any arm. Accuracy-level
+results were boring (0.71–0.72 everywhere except the broken arm). Then the
+monitor table landed:
 
-**Chapter 6 — The verdict.** Every pre-registered geometry arm failed to
-improve AUROC (all point estimates ≤ 0; one unregistered, exploratory arm
-gained +0.005 and is not statistically significant). The honest number is
-**0.770** for simple features.
-The geometry features carry *some* signal alone (0.661), but nothing that
-survives once entropy, NLL, and length are known. Both the wrong versions and
-the fixed versions of my analysis are kept in this repo, so you can check
-every step yourself.
+| Monitor trained on | COMBINED AUROC (test) |
+|---|---|
+| `fr_only` generations | **0.842** |
+| `entropy_only` generations | 0.731 |
+| `greedy` / `nll_only` / `full_geodesic` / `conservative` | 0.712 – 0.715 |
+
+**0.842.** At that moment I believed I had found something: geometry
+features looked like a huge correctness signal. This is the high point of
+the story — and the exact moment a good researcher should get suspicious.
+
+### Act II — The audit: I attack my own best result
+
+I decided to assume my 0.842 was wrong until proven right. I wrote
+independent checks (`analysis/audit_raw_A1A4.py`) that only re-measured —
+no new modeling, just verification. What followed is the most important
+part of this project:
+
+- **The 0.842 was about the broken arm, not about geometry.** The `fr_only`
+  arm had a 46.75% wrong-answer rate (vs 28% for greedy). In that wrecked
+  regime the *simple* signals carry it all: mean entropy 0.837 AUROC,
+  mean NLL 0.826 — the monitor was essentially reading "model is very
+  confused ⇒ answer wrong", which is trivially true when the decoder is
+  derailing itself.
+- **The score did not transfer.** The monitor that scored 0.842 on the
+  broken arm's data scored only **0.733** on healthy greedy generations.
+  A real signal would travel. An artifact doesn't.
+- **Geometry added nothing even there.** Paired deltas (geometry-augmented
+  vs conventional monitor) on normal arms: +0.013 for `full_geodesic`
+  (CI includes 0), −0.006, −0.002. Nothing significant in the good regime.
+- **I also caught six bugs in my own analysis code** (feature duplications,
+  aggregation errors, a tie-breaking nondeterminism that made two arms
+  diverge, and later a plotting normalization bug). All fixed and versioned;
+  the before/after artifacts are kept side by side.
+
+The verdict on my best number: **0.842 = a regime artifact, not a finding.**
+The honest arm-level story: geometry foresight doesn't beat greedy decoding,
+and geometry features don't beat entropy/NLL in a monitor.
+
+### Act III — Freeze the rules before the next shot
+
+I wrote a pre-registration (`docs/experiment_protocol.md`): the same frozen
+split, a rewritten deterministic runner, fixed monitor definitions, and
+pass/fail criteria — including the exact condition under which the null
+result stands. All written **before** any new GPU run.
+
+### Act IV — The clean run (run 2)
+
+Re-executed end-to-end on free Kaggle GPUs (2× T4): 519,356 candidate rows,
+500/500 questions, zero failures, hardness-gated and seed-fixed. Decoding
+was byte-identical across two independent GPU sessions (md5-verified). Wall
+time: about 3.7 hours.
+
+### Act V — The verdict
+
+Under the pre-registered rules: **no Fisher–Rao feature adds information.**
+Every pre-registered geometry arm scored ΔAUROC ≤ 0; one unregistered,
+exploratory arm gained +0.005 (not significant). The honest monitor:
+**0.770** (CI 0.713–0.821) with plain entropy/NLL/length features. FR alone:
+0.661 — some signal, but redundant with entropy (dev Spearman ρ = 0.51)
+once simple features are known. Both the failed version and the corrected
+version of this study live in this repo, side by side.
 
 ---
 
