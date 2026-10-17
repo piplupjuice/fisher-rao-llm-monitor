@@ -16,13 +16,14 @@ Everything here is open. Every number comes from a file you can check.
 
 ## The full story — how this project got here
 
-**Chapter 1 — The first experiment (run 1).** See the full walkthrough below —
-experiment 1 deserves its own section, because everything later grew out of it.
+**Chapter 1 — The first experiment (run 1).** I built a controlled decoding
+study on 500 GSM8K questions: six decoding arms, one-token lookahead, and
+Fisher–Rao geometry between candidate futures. The full design follows
+below — every number later in this story traces back to this run.
 
 **Chapter 2 — The "what?!" moment.** One monitor score came out very high,
 around **0.84 AUROC**. For these tasks that felt almost too good. It was.
-I was suspicious of my own best result, and that suspicion is the only reason
-this project is worth reading.
+That suspicion set the direction for everything that followed.
 
 ### Experiment 1 in full — what it was, why I did it, and how it worked
 
@@ -69,8 +70,7 @@ probability — like checking around a corner before walking.
 beat greedy — best arm +0.4 percentage points (71.8 vs 71.4), not
 statistically significant. And the aggressive FR arm (`fr_only`) actually
 **broke the model**: 52% accuracy, 19+ points *worse* than greedy, and 3x
-slower. Remember that awful 52% red bar — it becomes the villain of the
-story below.
+slower. Keep that 52% bar in mind — the next chapter explains why it matters.
 
 **The monitors, and the "what?!" headline.** Each of the 6 methods produced
 its own generation set, so I could train a monitor on any method's outputs.
