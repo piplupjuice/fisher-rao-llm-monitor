@@ -314,7 +314,7 @@ def main():
         yw = test.wrong.values
         order = np.argsort(-p)
         cov = (np.arange(len(yw)) + 1) / len(yw)
-        acc = (1 - yw[order]).cumsum() / cov
+        acc = (1 - yw[order]).cumsum() / (np.arange(len(yw)) + 1)
         ax.plot(100 * cov, 100 * acc, lw=2, label=label)
     ax.axvline(80, ls="--", c="k", lw=1)
     ax.set_xlabel("coverage (%) (skip riskiest first)")

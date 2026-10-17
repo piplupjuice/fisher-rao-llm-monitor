@@ -447,12 +447,12 @@ for m, colr in [("full_geodesic", "#0077BB"), ("conservative", "#EE7733"),
         s2 = s.dropna(subset=[monitor]).sort_values(monitor)
         yw = (s2.correct_checked == 0).astype(float).values
         cov = (np.arange(len(s2)) + 1) / len(s2)
-        acc = (1 - yw).cumsum() / cov  # accuracy among the retained prefix
+        acc = (1 - yw).cumsum() / (np.arange(len(s2)) + 1)  # accuracy among the answered prefix
         ax.plot(100 * cov, 100 * acc, color=colr, ls=ls, lw=1.8,
                 label=f"{m} · {label}")
-ax.set_ylim(60, 102); ax.legend(fontsize=7)
+ax.set_ylim(0, 102); ax.legend(fontsize=7)
 ax.set_xlabel("coverage (%) — skip riskiest first")
-ax.set_ylabel("worst-case accuracy so far (upper envelope)")
+ax.set_ylabel("accuracy among answered (%)")
 ax.set_title("Risk-coverage (test): COMBINED vs conventional-only monitors")
 fig.tight_layout(); fig.savefig(f"{FIGS}/fig_risk_coverage.png", dpi=200)
 

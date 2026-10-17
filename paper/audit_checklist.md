@@ -117,5 +117,12 @@ All five (D4 counted) → **disclosure audit PASS**.
 - `paper/paper_draft.md` — v1.0 → v1.1 (novelty hedging, redundancy values, reproduction statement, reference header).
 - `paper/paper_draft.md` — v1.2 (2026-10-17): references machine-verified (2 metadata fixes), Related-Work search performed and documented, concurrent 2026 FR-geometry preprints added as adjacent work.
 - `paper/audit_checklist.md` — OPEN items 1–2 resolved with documented evidence (see §6).
+- **D6 (2026-10-17, v1.3): risk–coverage plotting normalization bug found and fixed**
+  in both `audit_analysis.py` (run-1) and `run2_analysis.py` (run-2): the
+  cumulative correct count was divided by the coverage *fraction* instead of
+  the number answered, inflating the plotted y-scale ~n-fold (y-axis showed
+  "30000 %" instead of ~72%). Neither statistic table, nor any AUROC/AUPRC, is
+  affected (figures only); reruns reproduced CONV 0.770219 [0.7125, 0.8208]
+  exactly. Both figures regenerated and embedded in the README.
 - Raw data: never modified (A1–A4 read-only scripts).
 - No git commit was made by the agent (repo state left to the author).

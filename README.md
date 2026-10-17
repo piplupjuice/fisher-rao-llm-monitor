@@ -1,169 +1,183 @@
-# Fisher-Rao Monitors for LLM Correctness — A Controlled Study
+# Do geometry features help catch a language model's wrong answers?
 
-**One-sentence summary for a busy reader:** In a pre-registered, artifact-audited test on 500 GSM8K questions with Qwen2.5-1.5B-Instruct, Fisher–Rao distances between candidate future continuations added **no** incremental predictive information beyond simple entropy/NLL/length features for classifying wrong answers (8/8 augmentation arms ≤ 0 ΔAUROC), and an earlier headline number (≈0.84 AUROC) is shown to be a numerator–regime confound.
+**One-sentence answer from this study: on our test, no.**
 
-This project tests one clear question: **do Fisher-Rao geometry features help
-predict when a language model gives a wrong answer, beyond simple features
-like entropy and NLL?**
+We tested a fancy idea from math ("Fisher–Rao geometry") as a way to tell when
+the model Qwen2.5-1.5B-Instruct gets a GSM8K math question wrong. The simple
+features (how surprised the model is, how long its answer is) worked.
+The geometry features added **zero** extra help.
 
-The short answer: **on our experiment, no.** We ran a controlled test. We
-report the full result honestly, including what went wrong first.
+We also show why an earlier version of this study looked much better
+(AUROC ≈ 0.84) and why that number was a trap.
 
-This repo is for GSM8K math questions. We used the **Qwen2.5-1.5B-Instruct**
-model. If you reuse our method, cite this repo and check the limits in Section
-"Known limits".
+Everything here is open. Every number comes from a file you can check.
 
 ---
 
-## What this repo contains
+## New to this? Read this first (30 seconds)
 
-| Folder / file | What it is |
-|---|---|
-| `notebooks/geodesic_study.ipynb` | The main notebook. Cell 1 is the first experiment. Cell 2 fixes the crowd-sourced top-k bug and adds clean decoding. Cell 3 is the run-2 monitor experiment. |
-| `analysis/` | All analysis code. Each script runs on its own. |
-| `kernels/` | Kaggle kernel notebooks we used on 2x T4 GPUs. |
-| `geodesic_study/` | Raw results of the first experiment (run 1). Split files, gold answers, small CSVs. |
-| `kaggle_out/` | Raw results of the second experiment (run 2). Large CSVs live here. Some are too big for GitHub. |
-| `docs/` | All reports. Start here if you just want the story. |
-| `docs/audit_phase1.md` | The audit of run 1. It found four real problems. |
-| `docs/run2_report.md` | The full report of run 2 (the controlled test). |
-| `docs/experiment_protocol.md` | The plan we froze before running. It states the rules and pass criteria. |
-| `paper/` | Draft research paper, an audit checklist, and a review-style report. |
-| `experiment/` | One plan to repeat the test on a bigger model. Not run yet. |
+- **A "monitor"** is a small helper model. It watches the big model and
+  guesses: *right answer or wrong answer?*
+- **AUROC** is a score from 0.0 to 1.0.
+  - 0.5 = coin flip (useless).
+  - 1.0 = perfect.
+  - 0.77 = clearly useful but not perfect.
+- **Entropy** = how unsure the model is about its next word. High = unsure.
+- **NLL** (negative log-likelihood) = another word for "how surprised the
+  model is". Low = confident.
+- **Fisher–Rao (FR) distance** = a smart mathematical distance between two
+  probability distributions. Our question: does this smart distance see
+  things that plain entropy cannot see?
+- **Answer: no.** On this model and task: no.
 
 ---
 
 ## The results in one minute
 
-We decoded 500 GSM8K questions with plain greedy decoding (no sampling).
-At every step we saved all 4 top tokens. For each token we saved:
-negative log probability, entropy of its next-step distribution, and
-Fisher-Rao distances between candidate futures.
+We took 500 GSM8K questions. 100 for training the monitor, 400 kept away for
+testing (untouched, frozen, never peeked at while building).
 
-Then we built small classifiers ("monitors") to predict *wrong vs. right*
-final answers. We trained on 100 questions. We tested on 400 untouched
-questions. Here is what we found.
-
-| Monitor | AUROC on test data | Notes |
+| Monitor | AUROC on 400 test questions | What it means |
 |---|---|---|
-| Entropy + NLL + length only | **0.770** (CI 0.713 - 0.821) | Best monitor. Simple features win. |
-| Same + all 6 Fisher-Rao features | 0.728 | Fisher-Rao did not help. |
-| Fisher-Rao features only | 0.661 | Weaker than simple features. |
+| Simple: entropy + NLL + answer length | **0.770** (CI 0.713 – 0.821) | Best. Simple features win. |
+| Simple + all 6 geometry features | 0.728 | Geometry made it **worse**. |
+| Geometry features only | 0.661 | Some signal, but weaker than simple. |
 
-The confidence intervals come from a paired bootstrap with 2000 resamples.
-Seed 42 everywhere. Code and data are in `analysis/` and `kaggle_out/`.
+More results, with all 8 statistical tests: one exploratory (not
+pre-registered) arm, CONV+max_frcons, scored 0.775 — that is only +0.005 and
+it is not statistically significant. Nothing else got even +0.005.
 
-**Main finding.** Fisher-Rao geometry did not add useful information here
-once entropy and length features were already used. Some Fisher-Rao features
-even hurt the monitor.
+### The main chart
 
-**A second finding.** An earlier version of our experiment showed an AUROC
-near 0.84. That number was misleading. The reason: bad sampling made the
-model fail more often, and that regime made simple features look very
-strong. The paper and `docs/run2_report.md` explain this step by step.
+*Every monitor tested. The dashed line at 0.5 = coin flip. Higher = better.
+The best simple setup sits near 0.77; the geometry-only setups sit lower.*
+
+![Monitor AUROC chart with 95% confidence intervals](analysis/figures/fig_auroc_forest.png)
+
+### What "skipping hard questions" looks like
+
+If the monitor is good, you can skip the questions it marks as risky and the
+questions you do answer become more accurate. Here is that trade-off.
+At the 80% line (answer 80% of questions), the simple monitor and the
+geometry monitor are close to each other or the simple one is better.
+
+![Risk coverage curves](analysis/figures/fig_run2_risk_coverage.png)
+
+### The trap: what the old ≈0.84 number really was
+
+In our first run, one decoding arm accidentally made the model much weaker
+(52% accuracy instead of 72%). In that broken regime, simple features looked
+amazing (AUROC ≈ 0.84). But that was a feature of the broken regime, not a
+feature of the geometry method. We show the pieces of this mistake
+step-by-step in the paper. This chart shows how much worse the weak arm was:
+
+![Accuracy of 6 decoding methods, run 1](geodesic_study/accuracy_overview.png)
+
+*The red bar (`fr_only`, 52%) is the accidentally weak decoding arm.
+Everything else is ~72%.*
+
+### Honesty chart: our monitor scores are ranks, not probabilities
+
+The monitors output a risk score. We scale it to 0–1 for plots. It is a
+*ranking*, not a calibrated probability. This is stated everywhere.
+
+![Reliability curves](analysis/figures/fig_reliability.png)
 
 ---
+
+## Why you can trust these numbers
+
+- Frozen test set. We never tuned anything on it.
+- We wrote the pass/fail rules **before** looking at the run-2 results.
+- Decoding is fully deterministic. Re-running gives byte-identical outputs
+  (we checked, via md5, across two separate GPU sessions).
+- We found **four bugs in our own analysis**. We fixed them, and we published
+  the wrong version *and* the fixed version, so you can see the difference.
+- Independent checks with sklearn matched our own code exactly (0.0
+  difference) on every monitor.
+- Two previous headline claims from this project were themselves wrong — the
+  README you are reading now is the corrected story.
 
 ## Where this sits in the literature
 
 We searched arXiv (cs.CL) on 2026-10-17. Nobody we found tests
-"Fisher-Rao distance between candidate futures" as a monitor feature the way
-this study does. But Fisher-Rao geometry IS being used in other LLM roles —
+"Fisher–Rao distance between candidate futures" as a monitor feature the way
+this study does. But Fisher–Rao geometry **is** used in other LLM roles —
 most importantly, a concurrent preprint (Belief-Trajectory Energy,
-arXiv:2610.05114) shows Fisher-Rao structure in layer-wise belief updates
+arXiv:2610.05114) shows Fisher–Rao structure in layer-wise belief updates
 predicts errors. Our null result is about *token-level candidate divergence
-features*, which is a different point in the pipeline. The paper's Related
-Work section (§3) and References list all verified sources with DOIs.
+features*, a different point in the pipeline. The paper's §3 and the
+References list every source with its verified DOI or arXiv ID.
 
 ---
 
-## Why this experiment is trustworthy
+## Run it yourself
 
-- Split is frozen. We never tune anything on the test set.
-- We wrote the pass/fail rules before we looked at run-2 results.
-- Decoding is fully deterministic. Ties go to the smaller token id.
-  Re-running gives byte-identical outputs.
-- Every number in the reports comes from a released CSV file.
-- Independent metric checks (sklearn) matched our own code on every row.
-- We found four bugs in our own first analysis. We fixed them. We published
-  both the wrong and the corrected versions so you can check what changed.
-- We report negative results. There is no cherry-picking here.
-
----
-
-## How to run this yourself
-
-You need Python 3.11+ and about 16 GB RAM for the analysis. For the GPU runs
-you can use free Kaggle 2x T4 sessions, like we did.
+You need Python 3.11+ and about 16 GB of RAM.
 
 ```bash
 pip install -r requirements.txt
+```
 
-# Raw-data integrity checks for run 2 (fast, CPU only)
-python analysis/audit_raw_A1A4.py
+**Important:** two raw data folders are too big for GitHub, so first
+(optional, only if you want the full raw data):
+```bash
+kaggle kernels output pikanigga/geodesic-run-2-full -p kaggle_out/full
+```
 
-# Rebuild every number, table, and figure of the run-2 analysis
+Then rebuild every table and figure of the main analysis:
+```bash
 python analysis/run2_analysis.py --indir kaggle_out/full/geodesic_study2 --outdir analysis/outputs2
 ```
 
-Output tables go to `analysis/outputs2/`. Figures go to `analysis/figures/`.
+You should get the exact numbers above (seed 42, deterministic). The small
+score tables (`analysis/outputs2/*.csv`) **are** in this repo, so you can
+verify against them without downloading anything.
 
-To repeat the *generation* (the GPU part), open `kernels/` and push a kernel
-to Kaggle, or run `notebooks/geodesic_study.ipynb` cell 3 on Kaggle. Each
-full run costs about 15-19 T4-hours. A small test of 2 questions costs about
-2 minutes, so start with that first.
-
----
-
-## Data notes (what is NOT on GitHub)
-
-Some raw files are too big for GitHub (50 MB+):
-
-- `geodesic_study/token_traces*.csv` (run-1 per-token traces, about 160 MB)
-- `geodesic_study2/monitor_candidates*.csv` (run-2 candidate table, about 54 MB)
-
-Two ways to get them:
-
-1. Download from Kaggle: `kaggle kernels output pikanigga/geodesic-run-2-full -p kaggle_out/full`
-2. Re-run the kernels yourself.
-
-Small key files *are* in this repo: `predictions.csv`, `split_map.csv`,
-`summary.csv`, `monitor_answers.csv`, `monitor_steps.csv` (per part), and all
-test scores in `analysis/outputs2/`.
+To redo the *GPU generation* part, use the Kaggle notebooks in `kernels/`
+(cost: about 15-19 T4-hours; a 2-question smoke costs ~2 minutes).
 
 ---
 
-## Known limits (please read)
+## What is in this repo
 
-- One model (1.5B), one dataset (GSM8K), bf16. Do not assume results extend to
-  other models or tasks.
-- Lookahead is one token. Longer lookahead was never tested.
-- Test set has 400 questions. Our paired CIs can rule out Fisher-Rao gains
-  bigger than about +0.04 AUROC, but nothing smaller.
-- Monitors use per-question averages. Step-level sequence models may behave
-  differently. This is untested.
-- The protocol was written after we audited run 1. It is a documented replication,
-  not a blind pre-registration. We say this openly in the paper.
-
----
+| Folder / file | What it is |
+|---|---|
+| `notebooks/geodesic_study.ipynb` | The main notebook (3 cells: run-1 study, run-1 fix, run-2 monitor). |
+| `analysis/` | All analysis code + small result CSVs + figures. |
+| `kernels/` | Kaggle notebook sources for the 2x-T4 GPU runs. |
+| `geodesic_study/` | Run-1 raw results (big CSVs excluded, see above). |
+| `kaggle_out/` | Run-2 raw results (excluded from git; download command above). |
+| `docs/` | The reports: audit, run-2 report, frozen protocol. |
+| `paper/` | The paper draft, the audit checklist, a review-style report. |
+| `experiment/` | A written plan (not yet approved) to repeat on Qwen2.5-3B. |
 
 ## Suggested reading order
 
-1. `docs/run2_report.md` — the whole run-2 story, short version.
-2. `paper/paper_draft.md` — the submission draft with all numbers.
-3. `paper/audit_checklist.md` — every check, evidence, and open item.
-4. `docs/audit_phase1.md` — how we found and fixed our own problems.
-5. `experiment/replication_protocol.md` — the plan for a 3B replication
-   (pending approval, not run).
+1. This README.
+2. `docs/run2_report.md` — full run-2 story.
+3. `paper/paper_draft.md` — the paper with all numbers and caveats.
+4. `paper/audit_checklist.md` — every check we ran, evidence per line.
+5. `experiment/replication_protocol.md` — the not-yet-run 3B plan.
 
----
+## Known limits (please read)
 
-## Citation / reuse
+- One model (1.5B), one dataset (GSM8K), bf16. Results do not automatically
+  extend to other models or tasks.
+- Lookahead is one token. Longer lookahead: untested.
+- With 400 test questions, our confidence intervals can rule out geometry
+  gains bigger than about +0.04 AUROC. Gains smaller than that: possible,
+  we cannot see them.
+- The monitors use one score per question. Step-level sequence models might
+  behave differently. Untested.
+- The replication plan is written but **not run**.
 
-Model: Qwen2.5-1.5B-Instruct (Apache-2.0, provided by Alibaba's Qwen team).
-Dataset: GSM8K (Cobbe et al., 2021). Kaggle notebook GPUs (2x T4).
+## Credits & license
 
-License: MIT (see `LICENSE`).
+- Model: Qwen2.5-1.5B-Instruct (Apache-2.0, Alibaba Qwen team).
+- Dataset: GSM8K (Cobbe et al., 2021).
+- Compute: free Kaggle notebook GPUs (2x T4).
+- License: MIT (see `LICENSE`). Cite via `CITATION.cff`.
 
-If this repo saved you from believing a *confounded* AUROC, that was the
-point — negative and corrected results are still science.
+If this repo saved you from believing a *confounded* AUROC — that was the
+point. Negative results, done carefully, are still science.
