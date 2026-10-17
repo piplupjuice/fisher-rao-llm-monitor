@@ -24,3 +24,6 @@ __pycache__/
 # --- os ---
 Thumbs.db
 .DS_Store
+
+# local-only (removed from public repo by owner request)
+local_paper/
